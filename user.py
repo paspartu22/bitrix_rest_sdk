@@ -1,4 +1,4 @@
-from method import Method
+from .method import Method
 from dataclasses import dataclass
 
 

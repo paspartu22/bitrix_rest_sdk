@@ -1,7 +1,6 @@
-import requests
 from dataclasses import dataclass, field
 from typing import Optional, List, Any
-from method import Method
+from .method import Method
 
     
 @dataclass
