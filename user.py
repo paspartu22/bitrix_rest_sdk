@@ -1,5 +1,6 @@
 from .method import Method
 from dataclasses import dataclass
+from typing import TypedDict, Literal, Union, List, Optional, Any
 
 
 @dataclass
@@ -55,6 +56,15 @@ class UserFields:
     UF_DISTRICT: str = ""
     UF_PHONE_INNER: str = ""
 
+class SearchFilter(TypedDict, total=False):
+    NAME: str
+    LAST_NAME: str
+    WORK_POSITION: str
+    UF_DEPARTMENT_NAME: str
+    USER_TYPE: Literal["employee", "extranet", "email"]
+    FIND: str
+
+
 class User(Method):
     def __init__(self, webhook_url):
         super().__init__(webhook_url)
@@ -82,5 +92,22 @@ class User(Method):
 
         return self.send_method(metod='user.get', fields=fields)
     
-    def search(self, FILTER=[], sort="", order="ASC", ADMIN_MODE='N', start=0) -> list[UserFields]:
-        return self.send_method(metod='user.search', fields={'FILTER': FILTER, 'sort': sort, 'order': order, 'ADMIN_MODE': ADMIN_MODE, 'start': start})
+    def search(
+        self,
+        FILTER: Optional[SearchFilter] = None,
+        sort: str = "",
+        order: str = "ASC",
+        ADMIN_MODE: str = 'N',
+        start: int = 0
+    ) -> list[UserFields]:
+        FILTER = FILTER or {}
+        allowed_keys = set(SearchFilter.__annotations__.keys())
+        for key in FILTER:
+            if key not in allowed_keys:
+                raise ValueError(f"Недопустимое поле фильтра: {key}")
+        if "FIND" in FILTER and len(FILTER) > 1:
+            raise ValueError("Если используется FIND, нельзя указывать другие поля фильтра.")
+        return self.send_method(
+            metod='user.search',
+            fields={'FILTER': FILTER, 'sort': sort, 'order': order, 'ADMIN_MODE': ADMIN_MODE, 'start': start}
+        )

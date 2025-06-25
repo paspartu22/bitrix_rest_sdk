@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Literal, TypedDict
 from .method import Method
 
     
@@ -66,6 +66,49 @@ class TaskFields:
     IS_PINNED_IN_GROUP: Optional[str] = None  # 'Y', 'N'
     SERVICE_COMMENTS_COUNT: Optional[int] = None
 
+class CommentFields(TypedDict, total=False):
+    AUTHOR_ID: Optional[int]
+    AUTHOR_NAME: Optional[str]
+    AUTHOR_EMAIL: Optional[str]
+    USE_SMILES: Optional[str]  # 'Y', 'N'
+    POST_MESSAGE: Optional[str]
+    UF_FROM_MESSAGE_DOC: Optional[List[Any]]  # List of document IDs or similar
+
+
+class Task:
+    def __init__(self, webhook_url):
+        self.commentitem = TaskCommentItem(webhook_url)
+
+class TaskCommentItem(Method):
+    def __init__(self, webhook_url):
+        super().__init__(webhook_url)
+    
+    def add(self, task_id: int, comment: CommentFields) -> int: # Return the ID of the added comment
+        return self.send_method(metod='task.commentitem.add', fields={"TASKID": task_id,"FIELDS": comment})
+    
+    def update(self, task_id: int, comment_id: int, comment: CommentFields) -> bool: # Return True if the update was successful
+        return self.send_method(metod='task.commentitem.update', fields={"TASKID": task_id, "ITEMID": comment_id, "FIELDS": comment})
+    
+    def get(self, task_id: int, item_id: int) -> CommentFields:
+        return self.send_method(metod='task.commentitem.get', fields={"TASKID": task_id, "ITEMID": item_id})
+    
+    def getlist(self, task_id: int, order, filter) -> List[dict]:
+        return self.send_method(metod='task.commentitem.getlist', fields={"TASKID": task_id, "ORDER": order, "FILTER": filter})
+    
+    def delete(self, task_id: int, item_id: int) -> dict:
+        return self.send_method(metod='task.commentitem.delete', fields={"TASKID": task_id, "ITEMID": item_id})
+    
+    def isactionallowed(self, task_id: int, item_id: int, action: str) -> dict:
+        return self.send_method(metod='task.commentitem.isactionallowed', fields={"TASKID": task_id, "ITEMID": item_id, "ACTION": action})
+    
+    def getmanifest(self, task_id: int, item_id: int) -> dict:
+        return self.send_method(metod='task.commentitem.getmanifest', fields = {"TASKID": task_id, "ITEMID": item_id})
+
+class Tasks:
+    def __init__(self, webhook_url):
+        self.webhook_url = webhook_url
+        self.task = TasksTask(webhook_url)
+       
 class TasksTask(Method):
     def __init__(self, webhook_url):
         super().__init__(webhook_url)
@@ -109,11 +152,16 @@ class TasksTask(Method):
         result.raise_for_status()
         return result.get('result', [])
 
-class Tasks:
+class TaskTaskResult(Method):
     def __init__(self, webhook_url):
-        self.webhook_url = webhook_url
-        self.task = TasksTask(webhook_url)
+        super().__init__(webhook_url)
+        
+    def addFromComment(self, comment_id: int) -> dict:
+        return self.send_method(metod='tasks.task.taskresult.addFromComment', fields={"commentId": comment_id})
 
-
-   
+    def list(self, task_id:int) -> List[dict]:
+        return self.send_method(metod='tasks.task.taskresult.list', fields={"taskId": task_id})
+    
+    def deleteFromComment(self, comment_id: int) -> dict:
+        return self.send_method(metod='tasks.task.taskresult.deleteFromComment', fields={"commentId": comment_id})
 
