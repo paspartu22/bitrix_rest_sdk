@@ -89,13 +89,13 @@ class TaskCommentItem(Method):
     def update(self, task_id: int, comment_id: int, comment: CommentFields) -> bool: # Return True if the update was successful
         return self.send_method(metod='task.commentitem.update', fields={"TASKID": task_id, "ITEMID": comment_id, "FIELDS": comment})
     
-    def get(self, task_id: int, item_id: int) -> CommentFields:
+    def get(self, task_id: int, item_id: int) -> CommentFields: #return the comment details
         return self.send_method(metod='task.commentitem.get', fields={"TASKID": task_id, "ITEMID": item_id})
     
-    def getlist(self, task_id: int, order, filter) -> List[dict]:
+    def getlist(self, task_id: int, order, filter) -> List[CommentFields]: #return a list of comments
         return self.send_method(metod='task.commentitem.getlist', fields={"TASKID": task_id, "ORDER": order, "FILTER": filter})
     
-    def delete(self, task_id: int, item_id: int) -> dict:
+    def delete(self, task_id: int, item_id: int) -> dict: 
         return self.send_method(metod='task.commentitem.delete', fields={"TASKID": task_id, "ITEMID": item_id})
     
     def isactionallowed(self, task_id: int, item_id: int, action: str) -> dict:
